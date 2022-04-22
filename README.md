@@ -1,6 +1,5 @@
 # pySERESCAL
-pySERESCAL is a Python 2.7 translation of the Matlab toolbox "SERESCAL", written by K. Habicht (Helmholtz Zentrum Berlin, Germany), 
-who must receive all credits.
+pySERESCAL is a mere Python translation of the Matlab toolbox "SERESCAL" (v2014), written by K. Habicht (Helmholtz Zentrum Berlin, Germany).
 
 Our goal is to allow the broadest user base to calculate the three axis-neutron resonant spin echo (TAS-NRSE) resolution function,
 and be able to correct raw data from instrumental and sample specific effects.
