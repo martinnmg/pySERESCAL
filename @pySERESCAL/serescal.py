@@ -537,7 +537,7 @@ class SERESCAL:
 		anaw=self.anawidth
 		anah=self.anaheight	
 				
-		AM=zeros([6,8]) # expressed in AA^-1
+		AM=zeros([6,8])
 		AM[0,0]=0.5*ki/tan(A1)
 		AM[0,1]=-0.5*ki/tan(A1)
 		AM[1,1]=ki
