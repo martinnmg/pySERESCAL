@@ -1,10 +1,11 @@
 #-*- encoding: ISO-8859-1 -*-
-# N. MARTIN 19/12/2019
+# N. MARTIN 2022/04/28
 # (c) Laboratoire Léon Brillouin LLB
-# From the 'serescal' MATLAB toolbox by K. Habicht (HZB) 
+# From the 'SERESCAL' MATLAB toolbox by K. Habicht (HZB) 
 # References:
-# K. Habicht et al., J. Appl. Cryst. 36, 1307-1318 (2003)
-# F. Groitl et al., J. Appl. Cryst. 51, 818-830 (2018)
+# [Habicht2003] K. Habicht et al., J. Appl. Cryst. 36, 1307-1318 (2003)
+# [Groitl2018] F. Groitl et al., J. Appl. Cryst. 51, 818-830 (2018)	
+
 import sys
 sys.path.append('./@pySERESCAL/')
 
@@ -25,13 +26,13 @@ class pySERESCAL():
 		print '\npySERESCAL started on',t[0],'at',t[1],'\n'
 		
 		self.root=Tk()
-		self.root.title('pySERESCAL (Dec. 2019)')
+		self.root.title('pySERESCAL (Apr. 2022)')
 		self.varlist=list()
 		self.methodvar=StringVar()
 		self.methodvar.set('cn')
 		#self.autoNRSE=IntVar()
 		#self.autoNRSE.set(1)
-		for i in xrange(86):
+		for i in xrange(87):
 			self.varlist.append(DoubleVar())
 		
 		# Menu
@@ -50,7 +51,7 @@ class pySERESCAL():
 		
 		self.rescalsubmenu=Menu(self.root)
 		self.menubar.add_cascade(label='TAS',menu=self.rescalsubmenu)
-		self.rescalsubmenu.add_command(label='Vizualise TAS ellipsoid',command=self.plotTASellipsoids)		
+		self.rescalsubmenu.add_command(label='Vizualise TAS ellipsoid (test)',command=self.plotTASellipsoids)		
 		
 		self.serescalsubmenu=Menu(self.root)
 		self.menubar.add_cascade(label='NRSE',menu=self.serescalsubmenu)
@@ -154,7 +155,7 @@ class pySERESCAL():
 		self.qkvalue=Entry(self.root,textvariable=self.varlist[40],bd=0).grid(row=3+12, column=3)
 		self.qllabel=Label(self.root,text='ql (r.l.u.)',bg='black',fg='white').grid(row=3+12, column=4)
 		self.qlvalue=Entry(self.root,textvariable=self.varlist[41],bd=0).grid(row=3+12, column=5)
-		self.Egaplabel=Label(self.root,text=u'\u0394 (meV)',bg='black',fg='white').grid(row=3+12, column=6)
+		self.Egaplabel=Label(self.root,text=u'\u0394E (meV)',bg='black',fg='white').grid(row=3+12, column=6)
 		self.Egapvalue=Entry(self.root,textvariable=self.varlist[85],bd=0).grid(row=3+12, column=7)		
 		
 		self.extypelabel=Label(self.root,text='Type',bg='black',fg='white').grid(row=3+10, column=8)
@@ -166,10 +167,8 @@ class pySERESCAL():
 		self.extypevalue=Entry(self.root,textvariable=self.varlist[83],bd=0).grid(row=3+11, column=9)
 		self.anisolabel=Label(self.root,text='Mz',bg='black',fg='white').grid(row=3+12, column=8)
 		self.extypevalue=Entry(self.root,textvariable=self.varlist[84],bd=0).grid(row=3+12, column=9)
-		#self.phi0label=Label(self.root,text=u'\u03c60 (deg)',bg='black',fg='white').grid(row=5+12, column=8)
-		#self.phi0value=Entry(self.root,textvariable=self.varlist[86],bd=0).grid(row=5+12, column=9)
 		
-		# Curvature matrix
+		# Curvature matrix		
 		Label(self.root,text='Curvature matrix',bg='black',fg='red',font=("Helvetica", 12)).grid(row=4+12,columnspan=10)
 		self.Hxxlabel=Label(self.root,text=u'Hxx (meV.\u212b^2)',bg='black',fg='white').grid(row=4+13, column=0)
 		self.Hxxvalue=Entry(self.root,textvariable=self.varlist[42],bd=0).grid(row=4+13, column=1)
@@ -190,28 +189,34 @@ class pySERESCAL():
 		self.Hzzlabel=Label(self.root,text=u'Hzz (meV.\u212b^2)',bg='black',fg='white').grid(row=4+15, column=4)
 		self.Hzzvalue=Entry(self.root,textvariable=self.varlist[50],bd=0).grid(row=4+15, column=5)
 		
-		# Spatial parameters (Popovici)
-		Label(self.root,text='Spatial parameters (Popovici)',bg='black',fg='red',font=("Helvetica", 12)).grid(row=20,columnspan=10)
+		# self.cumbasislabel=Label(self.root,text='Basis choice',bg='black',fg='white').grid(row=17, column=6)
+		# self.cumbasis=StringVar()
+		# self.cumbasis.set('[a*,b*,c*]')		
+		# self.cumbasischoice=OptionMenu(self.root,self.cumbasis,'[a*,b*,c*]','[Qx,Qy,Qz]',command=self.updateCurvatureMatrixBasis).grid(row=17, column=7, sticky='ew')
+		# self.varlist[86].set(0)
 		
-		self.sourcelabel=Label(self.root,text='Source shape',bg='black',fg='white').grid(row=21, column=0)
-		self.sourcevar=StringVar()
-		self.sourcevar.set('Rectangular')
-		self.sourcechoice=OptionMenu(self.root,self.sourcevar,'Circular','Rectangular',command=self.updateGUIsource).grid(row=21, column=1, sticky='ew')
-		self.varlist[55].set(1)
-		self.source1label=Label(self.root,text='Width (cm)',bg='black',fg='white').grid(row=21, column=2)
-		self.source1value=Entry(self.root,textvariable=self.varlist[56],bd=0).grid(row=21, column=3)
-		self.source2label=Label(self.root,text='Height (cm)',bg='black',fg='white').grid(row=21, column=4)
-		self.source2value=Entry(self.root,textvariable=self.varlist[57],bd=0).grid(row=21, column=5)	
-			
-		self.guidelabel=Label(self.root,text='Guide?',bg='black',fg='white').grid(row=22, column=0)
+		# Spatial parameters
+		Label(self.root,text='Spatial parameters',bg='black',fg='red',font=("Helvetica", 12)).grid(row=20,columnspan=10)
+		
+		self.guidelabel=Label(self.root,text='In-pile guide?',bg='black',fg='white').grid(row=21, column=0)
 		self.guidevar=StringVar()
 		self.guidevar.set('Yes')
-		self.guidechoice=OptionMenu(self.root,self.guidevar,'Yes','No',command=self.updateGUIguide).grid(row=22, column=1, sticky='ew')
+		self.guidechoice=OptionMenu(self.root,self.guidevar,'Yes','No',command=self.updateGUIguide).grid(row=21, column=1, sticky='ew')
 		self.varlist[58].set(0)
-		self.guide1label=Label(self.root,text=u'Hor. div. (arcmin/\u212b)',bg='black',fg='white').grid(row=22, column=2)
-		self.guide1value=Entry(self.root,textvariable=self.varlist[59],bd=0).grid(row=22, column=3)
-		self.guide2label=Label(self.root,text=u'Vert. div. (arcmin/\u212b)',bg='black',fg='white').grid(row=22, column=4)
-		self.guide2value=Entry(self.root,textvariable=self.varlist[60],bd=0).grid(row=22, column=5)	
+		self.guide1label=Label(self.root,text=u'Hor. div. (arcmin/\u212b)',bg='black',fg='white').grid(row=21, column=2)
+		self.guide1value=Entry(self.root,textvariable=self.varlist[59],bd=0).grid(row=21, column=3)
+		self.guide2label=Label(self.root,text=u'Vert. div. (arcmin/\u212b)',bg='black',fg='white').grid(row=21, column=4)
+		self.guide2value=Entry(self.root,textvariable=self.varlist[60],bd=0).grid(row=21, column=5)	
+		
+		self.sourcelabel=Label(self.root,text='Source shape',bg='black',fg='white').grid(row=22, column=0)
+		self.sourcevar=StringVar()
+		self.sourcevar.set('Rectangular')
+		self.sourcechoice=OptionMenu(self.root,self.sourcevar,'Circular','Rectangular',command=self.updateGUIsource).grid(row=22, column=1, sticky='ew')
+		self.varlist[55].set(1)
+		self.source1label=Label(self.root,text='Width (cm)',bg='black',fg='white').grid(row=22, column=2)
+		self.source1value=Entry(self.root,textvariable=self.varlist[56],bd=0).grid(row=22, column=3)
+		self.source2label=Label(self.root,text='Height (cm)',bg='black',fg='white').grid(row=22, column=4)
+		self.source2value=Entry(self.root,textvariable=self.varlist[57],bd=0).grid(row=22, column=5)	
 		
 		self.samplelabel=Label(self.root,text='Sample shape',bg='black',fg='white').grid(row=23, column=0)
 		self.samplevar=StringVar()
@@ -335,21 +340,21 @@ class pySERESCAL():
 		
 		if sourcetype == 'Rectangular':
 			self.varlist[55].set(1)
-			self.sourcelabel=Label(self.root,text='Source shape',bg='black',fg='white').grid(row=21, column=0)
-			self.sourcechoice=OptionMenu(self.root,self.sourcevar,'Circular','Rectangular',command=self.updateGUIsource).grid(row=21, column=1, sticky='ew')
-			Label(self.root,text='Diameter (cm)',bg='black',fg='black').grid(row=21, column=2, sticky='ew')
-			self.source1label=Label(self.root,text='Width (cm)',bg='black',fg='white').grid(row=21, column=2)
-			self.source1value=Entry(self.root,textvariable=self.varlist[56],bd=0).grid(row=21, column=3)
-			self.source2label=Label(self.root,text='Height (cm)',bg='black',fg='white').grid(row=21, column=4)
-			self.source2value=Entry(self.root,textvariable=self.varlist[57],bd=0).grid(row=21, column=5)	
+			self.sourcelabel=Label(self.root,text='Source shape',bg='black',fg='white').grid(row=22, column=0)
+			self.sourcechoice=OptionMenu(self.root,self.sourcevar,'Circular','Rectangular',command=self.updateGUIsource).grid(row=22, column=1, sticky='ew')
+			Label(self.root,text='Diameter (cm)',bg='black',fg='black').grid(row=22, column=2, sticky='ew')
+			self.source1label=Label(self.root,text='Width (cm)',bg='black',fg='white').grid(row=22, column=2)
+			self.source1value=Entry(self.root,textvariable=self.varlist[56],bd=0).grid(row=22, column=3)
+			self.source2label=Label(self.root,text='Height (cm)',bg='black',fg='white').grid(row=22, column=4)
+			self.source2value=Entry(self.root,textvariable=self.varlist[57],bd=0).grid(row=22, column=5)	
 		if sourcetype == 'Circular':
 			self.varlist[55].set(0)
-			self.sourcelabel=Label(self.root,text='Source shape',bg='black',fg='white').grid(row=21, column=0)
-			self.sourcechoice=OptionMenu(self.root,self.sourcevar,'Circular','Rectangular',command=self.updateGUIsource).grid(row=21, column=1, sticky='ew')
-			self.source1label=Label(self.root,text='Diameter (cm)',bg='black',fg='white').grid(row=21, column=2)
-			self.source1value=Entry(self.root,textvariable=self.varlist[56],bd=0).grid(row=21, column=3)
-			Label(self.root,text='-',bg='black',fg='black').grid(row=21, column=4, sticky='ew')
-			Label(self.root,text='-',bg='black',fg='black').grid(row=21, column=5, sticky='ew')
+			self.sourcelabel=Label(self.root,text='Source shape',bg='black',fg='white').grid(row=22, column=0)
+			self.sourcechoice=OptionMenu(self.root,self.sourcevar,'Circular','Rectangular',command=self.updateGUIsource).grid(row=22, column=1, sticky='ew')
+			self.source1label=Label(self.root,text='Diameter (cm)',bg='black',fg='white').grid(row=22, column=2)
+			self.source1value=Entry(self.root,textvariable=self.varlist[56],bd=0).grid(row=22, column=3)
+			Label(self.root,text='-',bg='black',fg='black').grid(row=22, column=4, sticky='ew')
+			Label(self.root,text='-',bg='black',fg='black').grid(row=22, column=5, sticky='ew')
 		
 		self.root.update()
 		
@@ -357,20 +362,20 @@ class pySERESCAL():
 	
 		if isthereguide == 'Yes':
 			self.varlist[58].set(0)
-			self.guidelabel=Label(self.root,text='Guide?',bg='black',fg='white').grid(row=22, column=0)
-			self.guidechoice=OptionMenu(self.root,self.guidevar,'Yes','No',command=self.updateGUIguide).grid(row=22, column=1, sticky='ew')
-			self.guide1label=Label(self.root,text='Hor. div. (min/AA)',bg='black',fg='white').grid(row=22, column=2)
-			self.guide1value=Entry(self.root,textvariable=self.varlist[59],bd=0).grid(row=22, column=3)
-			self.guide2label=Label(self.root,text='Vert. div. (min/AA)',bg='black',fg='white').grid(row=22, column=4)
-			self.guide2value=Entry(self.root,textvariable=self.varlist[60],bd=0).grid(row=22, column=5)	
+			self.guidelabel=Label(self.root,text='In-pile guide?',bg='black',fg='white').grid(row=21, column=0)
+			self.guidechoice=OptionMenu(self.root,self.guidevar,'Yes','No',command=self.updateGUIguide).grid(row=21, column=1, sticky='ew')
+			self.guide1label=Label(self.root,text='Hor. div. (min/AA)',bg='black',fg='white').grid(row=21, column=2)
+			self.guide1value=Entry(self.root,textvariable=self.varlist[59],bd=0).grid(row=21, column=3)
+			self.guide2label=Label(self.root,text='Vert. div. (min/AA)',bg='black',fg='white').grid(row=21, column=4)
+			self.guide2value=Entry(self.root,textvariable=self.varlist[60],bd=0).grid(row=21, column=5)	
 		if isthereguide == 'No':
 			self.varlist[58].set(1)
-			self.guidelabel=Label(self.root,text='Guide?',bg='black',fg='white').grid(row=22, column=0)
-			self.guidechoice=OptionMenu(self.root,self.guidevar,'Yes','No',command=self.updateGUIguide).grid(row=22, column=1, sticky='ew')
-			self.guide1label=Label(self.root,text='-',bg='black',fg='black').grid(row=22, column=2, sticky='ew')		
-			self.guide1value=Label(self.root,text='-',bg='black',fg='black').grid(row=22, column=3, sticky='ew')	
-			self.guide2label=Label(self.root,text='-',bg='black',fg='black').grid(row=22, column=4, sticky='ew')	
-			self.guide2value=Label(self.root,text='-',bg='black',fg='black').grid(row=22, column=5, sticky='ew')
+			self.guidelabel=Label(self.root,text='In-pile guide?',bg='black',fg='white').grid(row=21, column=0)
+			self.guidechoice=OptionMenu(self.root,self.guidevar,'Yes','No',command=self.updateGUIguide).grid(row=21, column=1, sticky='ew')
+			self.guide1label=Label(self.root,text='-',bg='black',fg='black').grid(row=21, column=2, sticky='ew')		
+			self.guide1value=Label(self.root,text='-',bg='black',fg='black').grid(row=21, column=3, sticky='ew')	
+			self.guide2label=Label(self.root,text='-',bg='black',fg='black').grid(row=21, column=4, sticky='ew')	
+			self.guide2value=Label(self.root,text='-',bg='black',fg='black').grid(row=21, column=5, sticky='ew')
 
 		self.root.update()			
 		
@@ -421,6 +426,55 @@ class pySERESCAL():
 			self.det2label=Label(self.root,text='-',bg='black',fg='black').grid(row=24, column=4, sticky='ew')	
 			self.det2value=Label(self.root,text='-',bg='black',fg='black').grid(row=24, column=5, sticky='ew')
 
+		self.root.update()	
+
+	def updateCurvatureMatrixBasis(self,cumbasis):
+	
+		if cumbasis == '[a*,b*,c*]':
+			self.varlist[86].set(0)
+			self.cumbasislabel=Label(self.root,text='Basis choice',bg='black',fg='white').grid(row=17, column=6)
+			self.cumbasischoice=OptionMenu(self.root,self.cumbasis,'[a*,b*,c*]','[Qx,Qy,Qz]',command=self.updateCurvatureMatrixBasis).grid(row=17, column=7, sticky='ew')
+			self.Hxxlabel=Label(self.root,text=u'Hxx (meV.\u212b^2)',bg='black',fg='white').grid(row=4+13, column=0)
+			self.Hxxvalue=Entry(self.root,textvariable=self.varlist[42],bd=0).grid(row=4+13, column=1)
+			self.Hxylabel=Label(self.root,text=u'Hxy (meV.\u212b^2)',bg='black',fg='white').grid(row=4+13, column=2)
+			self.Hxyvalue=Entry(self.root,textvariable=self.varlist[43],bd=0).grid(row=4+13, column=3)
+			self.Hxzlabel=Label(self.root,text=u'Hxz (meV.\u212b^2)',bg='black',fg='white').grid(row=4+13, column=4)
+			self.Hxzvalue=Entry(self.root,textvariable=self.varlist[44],bd=0).grid(row=4+13, column=5)
+			self.Hyxlabel=Label(self.root,text=u'Hyx (meV.\u212b^2)',bg='black',fg='white').grid(row=4+14, column=0)
+			self.Hyxvalue=Entry(self.root,textvariable=self.varlist[45],bd=0).grid(row=4+14, column=1)
+			self.Hyylabel=Label(self.root,text=u'Hyy (meV.\u212b^2)',bg='black',fg='white').grid(row=4+14, column=2)
+			self.Hyyvalue=Entry(self.root,textvariable=self.varlist[46],bd=0).grid(row=4+14, column=3)
+			self.Hyzlabel=Label(self.root,text=u'Hyz (meV.\u212b^2)',bg='black',fg='white').grid(row=4+14, column=4)
+			self.Hyzvalue=Entry(self.root,textvariable=self.varlist[47],bd=0).grid(row=4+14, column=5)
+			self.Hzxlabel=Label(self.root,text=u'Hzx (meV.\u212b^2)',bg='black',fg='white').grid(row=4+15, column=0)
+			self.Hzxvalue=Entry(self.root,textvariable=self.varlist[48],bd=0).grid(row=4+15, column=1)
+			self.Hzylabel=Label(self.root,text=u'Hzy (meV.\u212b^2)',bg='black',fg='white').grid(row=4+15, column=2)
+			self.Hzyvalue=Entry(self.root,textvariable=self.varlist[49],bd=0).grid(row=4+15, column=3)
+			self.Hzzlabel=Label(self.root,text=u'Hzz (meV.\u212b^2)',bg='black',fg='white').grid(row=4+15, column=4)
+			self.Hzzvalue=Entry(self.root,textvariable=self.varlist[50],bd=0).grid(row=4+15, column=5)
+		if cumbasis == '[Qx,Qy,Qz]':
+			self.varlist[86].set(1)
+			self.cumbasislabel=Label(self.root,text='Basis choice',bg='black',fg='white').grid(row=17, column=6)
+			self.cumbasischoice=OptionMenu(self.root,self.cumbasis,'[a*,b*,c*]','[Qx,Qy,Qz]',command=self.updateCurvatureMatrixBasis).grid(row=17, column=7, sticky='ew')
+			self.Hxxlabel=Label(self.root,text=u'Hxx (meV/rlu^2)',bg='black',fg='white').grid(row=4+13, column=0)
+			self.Hxxvalue=Entry(self.root,textvariable=self.varlist[42],bd=0).grid(row=4+13, column=1)
+			self.Hxylabel=Label(self.root,text=u'Hxy (meV/rlu^2)',bg='black',fg='white').grid(row=4+13, column=2)
+			self.Hxyvalue=Entry(self.root,textvariable=self.varlist[43],bd=0).grid(row=4+13, column=3)
+			self.Hxzlabel=Label(self.root,text=u'Hxz (meV/rlu^2)',bg='black',fg='white').grid(row=4+13, column=4)
+			self.Hxzvalue=Entry(self.root,textvariable=self.varlist[44],bd=0).grid(row=4+13, column=5)
+			self.Hyxlabel=Label(self.root,text=u'Hyx (meV/rlu^2)',bg='black',fg='white').grid(row=4+14, column=0)
+			self.Hyxvalue=Entry(self.root,textvariable=self.varlist[45],bd=0).grid(row=4+14, column=1)
+			self.Hyylabel=Label(self.root,text=u'Hyy (meV/rlu^2)',bg='black',fg='white').grid(row=4+14, column=2)
+			self.Hyyvalue=Entry(self.root,textvariable=self.varlist[46],bd=0).grid(row=4+14, column=3)
+			self.Hyzlabel=Label(self.root,text=u'Hyz (meV/rlu^2)',bg='black',fg='white').grid(row=4+14, column=4)
+			self.Hyzvalue=Entry(self.root,textvariable=self.varlist[47],bd=0).grid(row=4+14, column=5)
+			self.Hzxlabel=Label(self.root,text=u'Hzx (meV/rlu^2)',bg='black',fg='white').grid(row=4+15, column=0)
+			self.Hzxvalue=Entry(self.root,textvariable=self.varlist[48],bd=0).grid(row=4+15, column=1)
+			self.Hzylabel=Label(self.root,text=u'Hzy (meV/rlu^2)',bg='black',fg='white').grid(row=4+15, column=2)
+			self.Hzyvalue=Entry(self.root,textvariable=self.varlist[49],bd=0).grid(row=4+15, column=3)
+			self.Hzzlabel=Label(self.root,text=u'Hzz (meV/rlu^2)',bg='black',fg='white').grid(row=4+15, column=4)
+			self.Hzzvalue=Entry(self.root,textvariable=self.varlist[50],bd=0).grid(row=4+15, column=5)
+
 		self.root.update()			
 		
 	def updateNRSEsettings(self):
@@ -458,82 +512,6 @@ class pySERESCAL():
 		for i in xrange(86):
 			fid.write(str(self.varlist[i].get())+'\n')
 		fid.close()
-
-	def plotTASellipsoids(self):
-		parlist=[]
-		for i in xrange(self.varlist.__len__()):
-			parlist.append(float(self.varlist[i].get()))
-		TAScalc=RESCAL(parlist,self.methodvar.get())
-		
-		if self.methodvar.get()=='cn':
-			
-			methodstr='Cooper-Nathans'
-			print '\nPlotting TAS resolution ellipsoids (',methodstr,') ...\n'
-			R0,MCN=TAScalc.computeCNmatrix() # get Cooper-Nathans matrix
-			th=linspace(0,2*pi,1e4+1)
-			HKLtoRec=TAScalc.getReciprocalBasis()
-			
-			### (Qx,E)-plane
-			if norm(TAScalc.qvec) == 0:
-				rlutoinvA=norm(dot(HKLtoRec,TAScalc.Qvec))/norm(TAScalc.Qvec)				
-			else:
-				rlutoinvA=norm(dot(HKLtoRec,TAScalc.qvec))/norm(TAScalc.qvec)					
-			# 50 % ellipse coordinates
-			r=sqrt(2*log(2)/(MCN[2,2]*(sin(th))**2+MCN[0,0]*(cos(th))**2+2*MCN[0,2]*sin(th)*cos(th))) # 50% ellipsoid		
-			xel50=r*cos(th)/rlutoinvA+norm(TAScalc.qvec)*sign(dot(TAScalc.qvec,TAScalc.Avec))			
-			yel50=r*sin(th)+TAScalc.En
-			# 20 % ellipse coordinates (to get comfortable space between ellipse and figure borders)
-			r=sqrt(2*log(5)/(MCN[2,2]*(sin(th))**2+MCN[0,0]*(cos(th))**2+2*MCN[0,2]*sin(th)*cos(th))) # 30% ellipsoid
-			xel20=r*cos(th)/rlutoinvA+norm(TAScalc.qvec)*sign(dot(TAScalc.qvec,TAScalc.Avec))
-			yel20=r*sin(th)+TAScalc.En
-			xmin=min(xel20)
-			xmax=max(xel20)
-			ymin=min(yel20)
-			ymax=max(yel20)			
-			# Local dispersion curve
-			if norm(TAScalc.qvec) == 0:	# Zone center	
-				xcen=0
-			else:
-				xcen=norm(TAScalc.qvec)*sign(dot(TAScalc.qvec,TAScalc.Avec))
-			xvel=linspace(xmin,xmax,101)
-			yvel=abs(xvel)*TAScalc.dEdq/rlutoinvA+TAScalc.Egap							
-			# (Qx,E)-widths
-			qxwidth=float(sqrt(8*log(2))/sqrt(MCN[0,0])/rlutoinvA)
-			qywidth=float(sqrt(8*log(2))/sqrt(MCN[1,1])/rlutoinvA)	
-			ewidth=float(sqrt(8*log(2))/sqrt(MCN[2,2]))
-			#
-			xwdthline=[TAScalc.En,TAScalc.En]
-			xwdthlinex=[xcen-0.5*qxwidth,xcen+0.5*qxwidth]
-			ywdthlinex=[xcen,xcen]
-			ywdthline=[TAScalc.En-0.5*ewidth,TAScalc.En+0.5*ewidth]			
-			# Draw all
-			fig = plt.gcf()
-			fig.canvas.manager.window.raise_()
-			fig.canvas.set_window_title('TAS')
-			fig.patch.set_facecolor('k')
-			plt.rc_context({'axes.edgecolor':'k', 'xtick.color':'w', 'ytick.color':'w', 'figure.facecolor':'w'})
-			plt.ion()
-			plt.clf()
-			plt.plot(xvel,yvel,'b-',linewidth=20, alpha=0.3)
-			plt.plot(xwdthlinex,xwdthline,'r',linewidth=1.5)	
-			plt.plot(ywdthlinex,ywdthline,'r',linewidth=1.5)
-			plt.plot(xel50,yel50,'r',linewidth=3.0)			
-			plt.xlim(xmin=xmin,xmax=xmax)
-			plt.ylim(ymin=ymin,ymax=ymax)
-			plt.xlabel('q (r.l.u.)',fontsize=18,color='w')
-			plt.ylabel('Energy (meV)',fontsize=18,color='w')
-			plt.title('TAS resolution ellipsoid',fontsize=18,color='w')
-			plt.text(xmin+0.05*abs(xmax-xmin),ymin+0.05*abs(ymax-ymin), 'Prefactor = %.3f\n$\delta$q = %.3f r.l.u.; $\delta$E = %.3f meV' % (R0,qxwidth,ewidth), fontsize=18)
-			plt.grid(True)
-			plt.show()
-			# Print values 
-			print 'Bragg widths:\n-------------'
-			print 'Qx: %.3f r.l.u. (FWHM)' % qxwidth
-			print 'Qy: %.3f r.l.u. (FWHM)' % qywidth		
-			print 'E: %.3f meV (FWHM)'% ewidth
-		else:
-			print '\nError: unknown calculation method!!!'
-			return
 		
 	def plotNRSEresolution(self):
 		# Calculates and plots resolution curves in a separate window
@@ -547,27 +525,18 @@ class pySERESCAL():
 
 		A1,A2,A3,A4,A5,A6,theta1,theta2,ni,nf,fratio,tmin,tmax,phi_S,sigma_S=NRSEcalc.calcAngles()
 			
-		ki,kf=NRSEcalc.calcKiKf()
-		deltat=(2*pi*m_n)/(hbar*(ki*1e10)**2)*1e12
-		nmax=round(tmax/deltat)+1
-		tau=linspace(0,nmax*deltat,1e2+1)
+		tau=linspace(0,tmax,1e2+1)		
 		
 		if self.methodvar.get()=='cn':
-			methodstr='Cooper-Nathans'
-			ptot=NRSEcalc.computeTotalResolutionCN(tau)
-			pinstr=NRSEcalc.computeInstrumentalResolutionCN(tau)
-			pcurv=NRSEcalc.computeCurvatureResolutionCN(tau)
-			pimperf=NRSEcalc.computeSampleImperfResolutionCN(tau)
+			methodstr='Cooper-Nathans'			
 		elif self.methodvar.get()=='pop':
 			methodstr='Popovici'
-			ptot=NRSEcalc.computeTotalResolutionPOP(tau)
-			pinstr=NRSEcalc.computeInstrumentalResolutionPOP(tau)
-			pcurv=NRSEcalc.computeCurvatureResolutionPOP(tau)
-			pimperf=NRSEcalc.computeSampleImperfResolutionPOP(tau)
 		else:
 			print '\nError: unknown calculation method!!!'
 			return
-
+		
+		pinstr,pcurv,pimperf,ptot=NRSEcalc.computeResolutionCurves(tau,self.methodvar.get())
+		
 		if self.varlist[82].get() == 0:
 			extypestr='Magnon'
 			pmag_par,pmag_antipar=NRSEcalc.computeMagneticFactor(tau)
@@ -578,10 +547,14 @@ class pySERESCAL():
 		
 		print '\nPlotting NRSE resolution curves (',methodstr,') ...\n'
 		
-#		if plt.get_fignums().__len__() == 0:
+		# Rescale Fourier times for further plotting
+		tmin*=1e12
+		tmax*=1e12
+		tau*=1e12
+		
 		fig = plt.gcf()
 		fig.canvas.manager.window.raise_()
-		fig.canvas.set_window_title('NRSE')
+		fig.canvas.set_window_title('NRSE resolution curves')
 		plt.clf()
 		fig.patch.set_facecolor('k')
 		plt.rc_context({'axes.edgecolor':'k', 'xtick.color':'w', 'ytick.color':'w', 'figure.facecolor':'w'})
@@ -603,7 +576,7 @@ class pySERESCAL():
 			p3,=plt.plot(tau,ptot,'k-',linewidth=2.5)
 		plt.xlabel('Fourier time (ps)',fontsize=18,color='w')
 		plt.ylabel('Polarisation',fontsize=18,color='w')
-		plt.title('NRSE resolution curves',fontsize=18,color='w')
+		#plt.title('NRSE resolution curves',fontsize=18,color='w')
 		plt.xlim(xmin=0,xmax=tau.max())
 		if self.varlist[82].get() == 0:
 			plt.ylim(ymin=min(minimum(array(pmag_par),array(pmag_antipar)))-0.05,ymax=1.05)
@@ -659,17 +632,11 @@ class pySERESCAL():
 		NRSEcalc.updateParams(parlist,self.methodvar.get()) 		
 		A1,A2,A3,A4,A5,A6,theta1,theta2,ni,nf,fratio,tmin,tmax,phi_S,sigma_S=NRSEcalc.calcAngles()	
 		
-		ki,kf=NRSEcalc.calcKiKf()
-		deltat=(2*pi*m_n)/(hbar*(ki*1e10)**2)*1e12
-		nmax=round(tmax/deltat)+1
-		tau=linspace(0,nmax*deltat,1e2)
+		tau=linspace(0,tmax,1e2+1)	
 		
 		if self.methodvar.get()=='cn':
-			methodstr='Cooper-Nathans'
-			ptot=NRSEcalc.computeTotalResolutionCN(tau)
-			pinstr=NRSEcalc.computeInstrumentalResolutionCN(tau)
-			pcurv=NRSEcalc.computeCurvatureResolutionCN(tau)
-			pimperf=NRSEcalc.computeSampleImperfResolutionCN(tau)
+			methodstr='Cooper-Nathans'		
+			pinstr,pcurv,pimperf,ptot=NRSEcalc.computeResolutionCurves_CN(tau)
 		elif self.methodvar.get()=='pop':
 			methodstr='Popovici'
 			ptot=NRSEcalc.computeTotalResolutionPOP(tau)
@@ -685,18 +652,100 @@ class pySERESCAL():
 			pmag_par*=ptot
 			pmag_antipar*=ptot
 			
-		fid=asksaveasfile(mode='w', filetypes=[('pySERESCAL data files', '*.dat')])
+		fid=asksaveasfile(mode='w', defaultextension='.dat')
 		if fid is None:
 			return
 		if self.varlist[82].get() == 0:			
 			fid.write('tau\t P_instr\t P_curv\t P_imperf\t P_total\t P_mag_par\t P_mag_antipar\n')
 			for i in xrange(tau.size):
-				fid.write(str(tau[i])+'\t'+str(pinstr[i])+'\t'+str(pcurv[i])+'\t'+str(pimperf[i])+'\t'+str(ptot[i])+'\t'+str(pmag_par[i])+'\t'+str(pmag_antipar[i])+'\n')
+				fid.write(str(tau[i]*1e12)+'\t'+str(pinstr[i])+'\t'+str(pcurv[i])+'\t'+str(pimperf[i])+'\t'+str(ptot[i])+'\t'+str(pmag_par[i])+'\t'+str(pmag_antipar[i])+'\n')
 		else:
 			fid.write('tau\t P_instr\t P_curv\t P_imperf\t P_total\n')
 			for i in xrange(tau.size):
-				fid.write(str(tau[i])+'\t'+str(pinstr[i])+'\t'+str(pcurv[i])+'\t'+str(pimperf[i])+'\t'+str(ptot[i])+'\n')
+				fid.write(str(tau[i]*1e12)+'\t'+str(pinstr[i])+'\t'+str(pcurv[i])+'\t'+str(pimperf[i])+'\t'+str(ptot[i])+'\n')
 		fid.close()
+
+	def plotTASellipsoids(self):
+		parlist=[]
+		for i in xrange(self.varlist.__len__()):
+			parlist.append(float(self.varlist[i].get()))
+		TAScalc=RESCAL(parlist,self.methodvar.get())
+		
+		if self.methodvar.get()=='cn':
+			
+			methodstr='Cooper-Nathans'
+			print '\nPlotting TAS resolution ellipsoids (',methodstr,') ...\n'
+			R0,MCN=TAScalc.computeCNmatrix() # get Cooper-Nathans matrix
+			th=linspace(0,2*pi,1e4+1)
+			HKLtoRec=TAScalc.getReciprocalBasis()
+			
+			### (Qx,E)-plane
+			if norm(TAScalc.qvec) == 0:
+				rlutoinvA=norm(dot(HKLtoRec,TAScalc.Qvec))/norm(TAScalc.Qvec)				
+			else:
+				rlutoinvA=norm(dot(HKLtoRec,TAScalc.qvec))/norm(TAScalc.qvec)					
+			# 50 % ellipse coordinates
+			r=sqrt(2*log(2)/(MCN[2,2]*(sin(th))**2+MCN[0,0]*(cos(th))**2+2*MCN[0,2]*sin(th)*cos(th))) # 50% ellipsoid		
+			xel50=r*cos(th)/rlutoinvA+norm(TAScalc.qvec)*sign(dot(TAScalc.qvec,TAScalc.Avec))			
+			yel50=r*sin(th)+TAScalc.En
+			# 30 % ellipse coordinates
+			r=sqrt(2*log(3)/(MCN[2,2]*(sin(th))**2+MCN[0,0]*(cos(th))**2+2*MCN[0,2]*sin(th)*cos(th))) # 33% ellipsoid		
+			xel30=r*cos(th)/rlutoinvA+norm(TAScalc.qvec)*sign(dot(TAScalc.qvec,TAScalc.Avec))			
+			yel30=r*sin(th)+TAScalc.En			
+			# 20 % ellipse coordinates (to get comfortable space between ellipse and figure borders)
+			r=sqrt(2*log(5)/(MCN[2,2]*(sin(th))**2+MCN[0,0]*(cos(th))**2+2*MCN[0,2]*sin(th)*cos(th))) # 20% ellipsoid
+			xel20=r*cos(th)/rlutoinvA+norm(TAScalc.qvec)*sign(dot(TAScalc.qvec,TAScalc.Avec))
+			yel20=r*sin(th)+TAScalc.En		
+			xmin=min(xel20)
+			xmax=max(xel20)
+			ymin=min(yel20)
+			ymax=max(yel20)			
+			# Local dispersion curve
+			if norm(TAScalc.qvec) == 0:	# Zone center	
+				xcen=0
+			else:
+				xcen=norm(TAScalc.qvec)*sign(dot(TAScalc.qvec,TAScalc.Avec))
+			xvel=linspace(xmin,xmax,101)
+			#yvel=abs(xvel)*TAScalc.dEdq/rlutoinvA+TAScalc.Egap							
+			yvel=sign(xcen)*(xvel-xcen)*TAScalc.dEdq/rlutoinvA+TAScalc.En-TAScalc.dE
+			# (Qx,E)-widths
+			qxwidth=float(sqrt(8*log(2))/sqrt(MCN[0,0])/rlutoinvA)
+			qywidth=float(sqrt(8*log(2))/sqrt(MCN[1,1])/rlutoinvA)	
+			ewidth=float(sqrt(8*log(2))/sqrt(MCN[2,2]))
+			#
+			xwdthline=[TAScalc.En,TAScalc.En]
+			xwdthlinex=[xcen-0.5*qxwidth,xcen+0.5*qxwidth]
+			ywdthlinex=[xcen,xcen]
+			ywdthline=[TAScalc.En-0.5*ewidth,TAScalc.En+0.5*ewidth]			
+			# Draw all
+			fig = plt.gcf()
+			fig.canvas.manager.window.raise_()
+			fig.canvas.set_window_title('TAS')
+			fig.patch.set_facecolor('k')
+			plt.rc_context({'axes.edgecolor':'k', 'xtick.color':'w', 'ytick.color':'w', 'figure.facecolor':'w'})
+			plt.ion()
+			plt.clf()
+			plt.plot(xvel,yvel,'b-',linewidth=20, alpha=0.3)
+			plt.plot(xwdthlinex,xwdthline,'r',linewidth=1.5)	
+			plt.plot(ywdthlinex,ywdthline,'r',linewidth=1.5)
+			plt.plot(xel30,yel30,'r',linewidth=1.5)
+			plt.plot(xel50,yel50,'r',linewidth=3.0)			
+			plt.xlim(xmin=xmin,xmax=xmax)
+			plt.ylim(ymin=ymin,ymax=ymax)
+			plt.xlabel('q (r.l.u.)',fontsize=18,color='w')
+			plt.ylabel('Energy (meV)',fontsize=18,color='w')
+			plt.title('TAS resolution ellipsoid',fontsize=18,color='w')
+			plt.text(xmin+0.05*abs(xmax-xmin),ymin+0.05*abs(ymax-ymin), 'Prefactor = %.3f\n$\delta$q = %.3f r.l.u.; $\delta$E = %.3f meV' % (R0,qxwidth,ewidth), fontsize=18)
+			plt.grid(True)
+			plt.show()
+			# Print values 
+			print 'Bragg widths:\n-------------'
+			print 'Qx: %.3f r.l.u. (FWHM)' % qxwidth
+			print 'Qy: %.3f r.l.u. (FWHM)' % qywidth		
+			print 'E: %.3f meV (FWHM)'% ewidth
+		else:
+			print '\nError: unknown calculation method!!!'
+			return
 	
 	def quitAll(self):
 		# Kill all existing windows and close app
