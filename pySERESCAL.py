@@ -83,8 +83,12 @@ class pySERESCAL():
 		#
 		self.kfixlabel=Label(self.root,text=u'k (\u212b^-1)',bg='black',fg='white').grid(row=3, column=0)
 		self.kfixvalue=Entry(self.root,textvariable=self.varlist[9],bd=0).grid(row=3, column=1)		
-		self.fixlabel=Label(self.root,text='Fixed k (1 = ki; 2 = kf)',bg='black',fg='white').grid(row=3, column=2)
-		self.fixvalue=Entry(self.root,textvariable=self.varlist[10],bd=0).grid(row=3, column=3)
+		#self.fixlabel=Label(self.root,text='Fixed k (1 = ki; 2 = kf)',bg='black',fg='white').grid(row=3, column=2)
+		#self.fixvalue=Entry(self.root,textvariable=self.varlist[10],bd=0).grid(row=3, column=3)
+		self.fixlabel=Label(self.root,text='Fixed k',bg='black',fg='white').grid(row=3, column=2)
+		self.fixvar=StringVar()
+		self.fixvar.set('kf')
+		self.fixchoice=OptionMenu(self.root,self.fixvar,'ki','kf',command=self.updateGUIkfix).grid(row=3, column=3, sticky='ew')
 		#
 		self.guidelabel=Label(self.root,text='In-pile guide?',bg='black',fg='white').grid(row=4, column=0)
 		self.guidevar=StringVar()
@@ -335,8 +339,7 @@ class pySERESCAL():
 		
 		# Logo
 		img=ImageTk.PhotoImage(Image.open('./@pySERESCAL/logo.png').resize((150, 154), Image.ANTIALIAS))
-		self.pySRlogo=Label(self.root, image=img).grid(column=8,row=1,columnspan=3,rowspan=10)
-		
+		self.pySRlogo=Label(self.root, image=img).grid(column=8,row=1,columnspan=3,rowspan=10)	
 		
 		# Start application
 		self.root.configure(background='black')
@@ -351,6 +354,15 @@ class pySERESCAL():
 			self.varlist[82].set(1)
 
 		self.root.update()
+
+	def updateGUIkfix(self,fix):
+		
+		if fix=='ki':
+			self.varlist[10].set(1)
+		else:
+			self.varlist[10].set(2)
+
+		self.root.update()	
 
 	def updateGUIguide(self,isthereguide):
 	
