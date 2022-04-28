@@ -1,10 +1,10 @@
 #-*- encoding: ISO-8859-1 -*-
-# N. MARTIN 19/12/2019
+# N. MARTIN 2022/04/28
 # (c) Laboratoire Léon Brillouin LLB
-# From the 'serescal' MATLAB toolbox by K. Habicht (HZB) 
+# From the 'SERESCAL' MATLAB toolbox by K. Habicht (HZB) 
 # References:
-# K. Habicht et al., J. Appl. Cryst. 36, 1307-1318 (2003)
-# F. Groitl et al., J. Appl. Cryst. 51, 818-830 (2018)
+# [Habicht2003] K. Habicht et al., J. Appl. Cryst. 36, 1307-1318 (2003)
+# [Groitl2018] F. Groitl et al., J. Appl. Cryst. 51, 818-830 (2018)	
 
 from numpy import arccos,arcsin,argmin,array,cos,cross,deg2rad,dot,exp, \
 	linspace,log,minimum,pi,ones,rad2deg,resize,sin,sign,sqrt,tan,transpose,zeros
@@ -182,7 +182,7 @@ class RESCAL:
 			self.rah=parlist[80]/100.
 			self.rav=parlist[81]/100.	
 		# Zone center gap (for viszualisation of the dispersion curve only)
-		self.Egap=parlist[85]
+		self.dE=parlist[85]
 		
 	def calcAngles(self):
 # 		Calculates TAS (crystal angles, scattering vector basis, etc.)
