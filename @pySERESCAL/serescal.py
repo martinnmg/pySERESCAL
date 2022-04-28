@@ -717,14 +717,16 @@ class SERESCAL:
 		# H is transformed to the "orthonormalized" AB basis
 		V1,V2,V3=self.getOrthonormalBasis()
 		Avec=self.Avec/norm(self.Avec)
+		Avec=self.Gvec/norm(self.Gvec)
 		Bvec=cross(V3.T,Avec)
 		Cvec=cross(Avec,Bvec)
-		RectoAB=transpose(array([Avec,Bvec,Cvec]))
-		HKLtoRec=self.getReciprocalBasis()
+		RectoAB=array([Avec.T,Bvec.T,Cvec.T])
 		H=dot(RectoAB.T,dot(H,RectoAB))
 		
 		# H is transformed to the (Qx,Qy,Qz) basis
-		Qvec=dot(HKLtoRec,self.Qvec)
+		#HKLtoRec=self.getReciprocalBasis()
+		#Qvec=dot(HKLtoRec,self.Qvec)
+		Qvec=self.Qvec
 		phi_AQ=arcsin(norm(cross(Avec,Qvec))/(norm(Avec)*norm(Qvec)))	
 		if dot(cross(Avec,Qvec),Cvec)<0:
 			phi_AQ*=-1
