@@ -1,5 +1,6 @@
 - Unify TAS matrices definitions
 - Add sample rotation angle w.r.t. bisector (Popovici)
+- Add effect of mosaic and lattice spacing spread to the TAS resolution matrices (e.g. Werner & Pynn correction)
 - Allow for a different basis & unit choice for the Hessian (curvature matrix), e.g. (Qx,Qy,Qz) in meV/rlu
 - Add Popovici in the RESCAL part
 - Allow changing theta1,2 angles
