@@ -1,6 +1,7 @@
+- Unify TAS matrices definitions
 - Add sample rotation angle w.r.t. bisector (Popovici)
 - Allow for a different basis & unit choice for the Hessian (curvature matrix), e.g. (Qx,Qy,Qz) in meV/rlu
-- Use 'Delta E' entry as detuning parameter
+- Add Popovici in the RESCAL part
 - Allow changing theta1,2 angles
 - Use input file for instrument & excitation parameters (à la RESLIB)
 - Write a short manual
