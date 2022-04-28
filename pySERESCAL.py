@@ -636,16 +636,13 @@ class pySERESCAL():
 		
 		if self.methodvar.get()=='cn':
 			methodstr='Cooper-Nathans'		
-			pinstr,pcurv,pimperf,ptot=NRSEcalc.computeResolutionCurves_CN(tau)
 		elif self.methodvar.get()=='pop':
 			methodstr='Popovici'
-			ptot=NRSEcalc.computeTotalResolutionPOP(tau)
-			pinstr=NRSEcalc.computeInstrumentalResolutionPOP(tau)
-			pcurv=NRSEcalc.computeCurvatureResolutionPOP(tau)
-			pimperf=NRSEcalc.computeSampleImperfResolutionPOP(tau)
 		else:
 			print '\nError: unknown calculation method!!!'
 			return
+
+		pinstr,pcurv,pimperf,ptot=NRSEcalc.computeResolutionCurves(tau,self.methodvar.get())
 		
 		if self.varlist[82].get() == 0:
 			pmag_par,pmag_antipar=NRSEcalc.computeMagneticFactor(tau)
