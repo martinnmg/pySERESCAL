@@ -1,5 +1,5 @@
 #-*- encoding: ISO-8859-1 -*-
-# N. MARTIN 2022/04/28
+# N. MARTIN 2022/04/29
 # (c) Laboratoire Léon Brillouin LLB
 # From the 'SERESCAL' MATLAB toolbox by K. Habicht (HZB) 
 # References:
@@ -21,6 +21,46 @@ class SERESCAL:
 		# Creates a 'SERESCAL' object containing information & methods for all NRSE-related calculations
 		self.updateParams(parlist,method)
 		self.printSEparams()
+
+	def printSEparams(self):
+# 		Prints TAS & NRSE parameters in the command line window
+		
+		A1,A2,A3,A4,A5,A6,theta1,theta2,ni,nf,fratio,tmin,tmax,phi_S,sigma_S=self.calcAngles()
+		ki,kf=self.calcKiKf()
+		
+		if version_info[:3]<(3,0):
+			print '\nTAS parameters:\n---------------'
+			if self.fix == 1:
+				print 'Q = [',self.Qvec[0],self.Qvec[1],self.Qvec[2],'], hw =',self.En/(1e-3*eV_to_J),'meV (fixed ki)'	
+			else:
+				print 'Q = [',self.Qvec[0],self.Qvec[1],self.Qvec[2],'], hw =',self.En/(1e-3*eV_to_J),'meV (fixed kf)'	
+			print 'ki =',round(ki*1e-10,3),'1/AA, kf = ',round(kf*1e-10,3),'1/A\n' 
+			print 'a1 =',round(rad2deg(A1),2),'deg, a2 =',round(rad2deg(A2),2),'deg'		
+			print 'a3 =',round(rad2deg(A3),2),'deg, a4 =',round(rad2deg(A4),2),'deg'		
+			print 'a5 =',round(rad2deg(A5),2),'deg, a6 =',round(rad2deg(A6),2),'deg\n'	
+			#
+			print '\nNRSE parameters:\n----------------'
+			print 'Zeta_i =',round(rad2deg(theta1),2),'deg'
+			print 'Zeta_f =',round(rad2deg(theta2),2),'deg'
+			print 'Frequency ratio f_i/f_f =',round(fratio,3)
+			print 'Minimum tau =',round(tmin*1e12,1),'ps'
+			print 'Maximum tau =',round(tmax*1e12,1),'ps'
+		else:
+			print('\nTAS parameters:\n---------------')
+			if self.fix == 1:
+				print('Q = [',self.Qvec[0],self.Qvec[1],self.Qvec[2],'], hw =',self.En,'meV (fixed ki)')	
+			else:
+				print('Q = [',self.Qvec[0],self.Qvec[1],self.Qvec[2],'], hw =',self.En,'meV (fixed kf)')			
+			print('a1 =',round(rad2deg(A1),2),'deg, a2 =',round(rad2deg(A2),2),'deg')		
+			print('a3 =',round(rad2deg(A3),2),'deg, a4 =',round(rad2deg(A4),2),'deg')		
+			print('a5 =',round(rad2deg(A5),2),'deg, a6 =',round(rad2deg(A6),2),'deg\n')	
+			#
+			print('\nNRSE parameters:\n----------------')
+			print('Zeta_i =',round(rad2deg(theta1),2),'deg')
+			print('Zeta_f =',round(rad2deg(theta2),2),'deg')
+			print('Frequency ratio f_i/f_f =',round(fratio,3))
+			print('Minimum tau =',round(tmin*1e12,1),'ps')
+			print('Maximum tau =',round(tmax*1e12,1),'ps')	
 		
 	def updateParams(self,parlist,method):
 # 		Gets TAS & NRSE parameters from the main panel,
@@ -101,6 +141,7 @@ class SERESCAL:
 		self.Qvec=array([parlist[31],parlist[32],parlist[33]])	# Excitation wavevector
 		self.En=parlist[34]*eV_to_J*1e-3						# Energy transfer (input unit == meV), meV -> J
 		self.dEdq=parlist[38]*eV_to_J/hbar*1e-13				# Local slope of the dispersion (input unit == meV.Å), meV.Å -> m/s
+		self.dE=parlist[85]*eV_to_J*1e-3						# Energy detuning parameter
 		# Wavectors & excitation velocity
 		self.Gmodvec=array([parlist[35],parlist[36],parlist[37]])	# Direction of the dispersion
 		self.qvec=array([parlist[39],parlist[40],parlist[41]])		# Q = G + q
@@ -145,7 +186,7 @@ class SERESCAL:
 			self.sampleshape=parlist[61]
 			if self.sampleshape == 0:
 				self.samplediameter=parlist[62]*1e-2	# Input unit == cm, cm -> m
-				self.samplethickness=parlist[63]*1e-2	# Input unit == cm, cm -> m
+				self.sampleheight=parlist[63]*1e-2		# Input unit == cm, cm -> m
 			else:
 				self.samplethickness=parlist[62]*1e-2	# Input unit == cm, cm -> m
 				self.samplewidth=parlist[63]*1e-2		# Input unit == cm, cm -> m
@@ -177,14 +218,13 @@ class SERESCAL:
 			self.rav=parlist[81]	 					# Input unit == 1/m
 		# Magnetic stuff (work in progress...)
 		self.extype=parlist[82]							# Magnon/phonon
-		self.Myy=parlist[83]							# In-plane moment (Myy + Mzz = 1)
-		self.Mzz=parlist[84]							# Out-of-plane moment (Myy + Mzz = 1)
+		self.Mxy=parlist[83]							# In-plane magnetic moment
+		self.Mzz=parlist[84]							# Out-of-plane magnetic moment
 
 	def calcAngles(self):
 # 		Calculates TAS (crystal angles, scattering vector basis, etc.)
 #		and NRSE parameters (coil tilt angles, field integral ratio, etc.)
 	
-		# self.getReciprocalBasis()
 		HKLtoRec=self.getReciprocalBasis()
 		Avec=dot(HKLtoRec,self.Avec)
 		A=norm(Avec)
@@ -225,7 +265,8 @@ class SERESCAL:
 			phi_G=arccos(phiarg)	
 			
 		if dot(cross(Gvec,qvec),Cvec)<0:
-			phi_G*=-1		
+			phi_G*=-1	
+			
 		gamma=arccos(dot(Qvec,Avec)/(Q*A))		
 		if dot(cross(Qvec,Avec),Cvec)<0:
 			gamma*=-1
@@ -236,7 +277,7 @@ class SERESCAL:
 		kfvec=kf*array([-cos(sigma_S),-sin(sigma_S),0])*hbar/m_n
 		qvec=q*array([cos(phi_G),sin(phi_G),0])*hbar/m_n		
 				
-		A3=arccos(dot(kivec,Avec)/(ki*A))
+		A3=arccos(dot(kivec,Avec)/(norm(kivec)*norm(Avec)))
 		if dot(cross(kivec,Avec),array([0,0,1]))<0:
 			A3*=-1
 		
@@ -288,46 +329,18 @@ class SERESCAL:
 				tmax=m_n/hbar*8*pi*fmax*L8pi/(nf*kf**2*cos(theta2))	
 		
 		return A1,A2,A3,A4,A5,A6,theta1,theta2,ni,nf,fratio,tmin,tmax,phi_S,sigma_S
+
+	def calcKiKf(self):	
+# 		Calculates ki and kf (in AA^-1) knowing fixed k and energy transfer values
 	
-	def printSEparams(self):
-# 		Prints TAS & NRSE parameters in the command line window
-		
-		A1,A2,A3,A4,A5,A6,theta1,theta2,ni,nf,fratio,tmin,tmax,phi_S,sigma_S=self.calcAngles()
-		ki,kf=self.calcKiKf()
-		
-		if version_info[:3]<(3,0):
-			print '\nTAS parameters:\n---------------'
-			if self.fix == 1:
-				print 'Q = [',self.Qvec[0],self.Qvec[1],self.Qvec[2],'], hw =',self.En/(1e-3*eV_to_J),'meV (fixed ki)'	
-			else:
-				print 'Q = [',self.Qvec[0],self.Qvec[1],self.Qvec[2],'], hw =',self.En/(1e-3*eV_to_J),'meV (fixed kf)'	
-			print 'ki =',round(ki*1e-10,3),'1/AA, kf = ',round(kf*1e-10,3),'1/A\n' 
-			print 'a1 =',round(rad2deg(A1),2),'deg, a2 =',round(rad2deg(A2),2),'deg'		
-			print 'a3 =',round(rad2deg(A3),2),'deg, a4 =',round(rad2deg(A4),2),'deg'		
-			print 'a5 =',round(rad2deg(A5),2),'deg, a6 =',round(rad2deg(A6),2),'deg\n'	
-			#
-			print '\nNRSE parameters:\n----------------'
-			print 'Zeta_i =',round(rad2deg(theta1),2),'deg'
-			print 'Zeta_f =',round(rad2deg(theta2),2),'deg'
-			print 'Frequency ratio f_i/f_f =',round(fratio,3)
-			print 'Minimum tau =',round(tmin*1e12,1),'ps'
-			print 'Maximum tau =',round(tmax*1e12,1),'ps'
+		if self.fix==1:
+			ki=self.kfix
+			kf=sqrt(ki**2-2*m_n*self.En/hbar**2)
 		else:
-			print('\nTAS parameters:\n---------------')
-			if self.fix == 1:
-				print('Q = [',self.Qvec[0],self.Qvec[1],self.Qvec[2],'], hw =',self.En,'meV (fixed ki)')	
-			else:
-				print('Q = [',self.Qvec[0],self.Qvec[1],self.Qvec[2],'], hw =',self.En,'meV (fixed kf)')			
-			print('a1 =',round(rad2deg(A1),2),'deg, a2 =',round(rad2deg(A2),2),'deg')		
-			print('a3 =',round(rad2deg(A3),2),'deg, a4 =',round(rad2deg(A4),2),'deg')		
-			print('a5 =',round(rad2deg(A5),2),'deg, a6 =',round(rad2deg(A6),2),'deg\n')	
-			#
-			print('\nNRSE parameters:\n----------------')
-			print('Zeta_i =',round(rad2deg(theta1),2),'deg')
-			print('Zeta_f =',round(rad2deg(theta2),2),'deg')
-			print('Frequency ratio f_i/f_f =',round(fratio,3))
-			print('Minimum tau =',round(tmin*1e12,1),'ps')
-			print('Maximum tau =',round(tmax*1e12,1),'ps')		
+			kf=self.kfix
+			ki=sqrt(2*m_n*self.En/hbar**2+kf**2)
+			
+		return ki,kf	
 	
 	def getReciprocalBasis(self):
 		
@@ -377,22 +390,11 @@ class SERESCAL:
 		V2/=norm(V2)
 		V1/=norm(V1)
 		
-		return V1,V2,V3
-						
-	def calcKiKf(self):	
-# 		Calculates ki and kf (in AA^-1) knowing fixed k and energy transfer values
-	
-		if self.fix==1:
-			ki=self.kfix
-			kf=sqrt(ki**2-2*m_n*self.En/hbar**2)
-		else:
-			kf=self.kfix
-			ki=sqrt(2*m_n*self.En/hbar**2+kf**2)
-			
-		return ki,kf		
+		return V1,V2,V3		
 
 	def computeResolutionCurves(self,tau,method):
-# 		Computes resolution matrices, taking Cooper-Nathans approximation for the TAS transmission function.
+# 		Computes resolution matrices, taking either Cooper-Nathas or Popovici 
+#		approximation for the TAS transmission function.
 	
 		# Instrumental (flat dispersion and perfect sample)
 		if method=='cn':
@@ -508,178 +510,150 @@ class SERESCAL:
 		ki,kf=self.calcKiKf()
 			
 		## Real part (TAS transmission) 
+						
+		Amat=zeros([6,8])
+		Amat[0,0]=0.5*ki/tan(A1)
+		Amat[0,1]=-0.5*ki/tan(A1)
+		Amat[1,1]=ki
+		Amat[2,3]=ki
+		Amat[3,4]=0.5*kf/tan(A5)
+		Amat[3,5]=-0.5*kf/tan(A5)
+		Amat[4,4]=kf
+		Amat[5,6]=kf
 		
-		if self.sourceshape == 0:
-			sourced=self.sourcediameter
-		else:
-			sourcey=self.sourcey
-			sourcez=self.sourcez
-		
-		monoth=self.monothickness
-		monow=self.monowidth
-		monoh=self.monoheight
-		
-		if self.sampleshape == 0:
-			samth=self.samplethickness
-			samd=self.samplediameter
-		else:
-			samth=self.samplethickness
-			samw=self.samplewidth
-			samh=self.sampleheight
-		
-		if self.detshape == 0:
-			detd=self.detdiameter
-		else:
-			dety=self.detwidth
-			detz=self.detheight
-		
-		anath=self.anathickness
-		anaw=self.anawidth
-		anah=self.anaheight	
-				
-		AM=zeros([6,8]) # expressed in AA^-1
-		AM[0,0]=0.5*ki/tan(A1)
-		AM[0,1]=-0.5*ki/tan(A1)
-		AM[1,1]=ki
-		AM[2,3]=ki
-		AM[3,4]=0.5*kf/tan(A5)
-		AM[3,5]=-0.5*kf/tan(A5)
-		AM[4,4]=kf
-		AM[5,6]=kf
-		
-		FM=zeros([4,4])
-		FM[0,0]=1/self.etaM**2
-		FM[1,1]=1/self.etaM**2 # Should be vertical mosaic
-		FM[2,2]=1/self.etaA**2
-		FM[3,3]=1/self.etaA**2 # Should be vertical mosaic
+		Fmat=zeros([4,4])
+		Fmat[0,0]=1/self.etaM**2
+		Fmat[1,1]=1/self.etaM**2 # Should be vertical mosaic
+		Fmat[2,2]=1/self.etaA**2
+		Fmat[3,3]=1/self.etaA**2 # Should be vertical mosaic
 	
-		GM=zeros([8,8])
+		Gmat=zeros([8,8])
 		if self.guide == 0:
-			GM[0,0]=1/(self.guidehdiv*2*pi/(ki*1e-10))**2
-			GM[2,2]=1/(self.guidevdiv*2*pi/(ki*1e-10))**2
+			Gmat[0,0]=1/(self.guidehdiv*2*pi/(ki*1e-10))**2
+			Gmat[2,2]=1/(self.guidevdiv*2*pi/(ki*1e-10))**2
 		else:
-			GM[0,0]=1/self.alpha0**2
-			GM[2,2]=1/self.beta0**2
-		GM[1,1]=1/self.alpha1**2
-		GM[3,3]=1/self.beta1**2		
-		GM[4,4]=1/self.alpha2**2
-		GM[5,5]=1/self.alpha3**2
-		GM[6,6]=1/self.beta2**2
-		GM[7,7]=1/self.beta3**2		
+			Gmat[0,0]=1/self.alpha0**2
+			Gmat[2,2]=1/self.beta0**2
+		Gmat[1,1]=1/self.alpha1**2
+		Gmat[3,3]=1/self.beta1**2		
+		Gmat[4,4]=1/self.alpha2**2
+		Gmat[5,5]=1/self.alpha3**2
+		Gmat[6,6]=1/self.beta2**2
+		Gmat[7,7]=1/self.beta3**2		
 		
-		CM=zeros([4,8])
-		CM[0,0]=0.5
-		CM[0,1]=0.5
-		CM[2,4]=0.5
-		CM[2,5]=0.5
-		CM[1,2]=0.5/sin(A1)
-		CM[1,3]=-0.5/sin(A1)
-		CM[3,6]=0.5/sin(A5)
-		CM[3,7]=-0.5/sin(A5)
+		Cmat=zeros([4,8])
+		Cmat[0,0]=0.5
+		Cmat[0,1]=0.5
+		Cmat[2,4]=0.5
+		Cmat[2,5]=0.5
+		Cmat[1,2]=0.5/sin(A1)
+		Cmat[1,3]=-0.5/sin(A1)
+		Cmat[3,6]=0.5/sin(A5)
+		Cmat[3,7]=-0.5/sin(A5)
 
-		TM=zeros([4,13])
-		TM[0,0]=-0.5/self.L0
-		TM[0,2]=0.5*cos(A1)*(1/self.L1-1/self.L0)
-		TM[0,3]=0.5*sin(A1)*(1/self.L0+1/self.L1-2*self.rmh*self.SM/abs(sin(A1)))
-		TM[0,5]=0.5*sin(0.5*A4)/self.L1
-		TM[0,6]=0.5*cos(0.5*A4)/self.L1
-		TM[1,1]=-0.5/(self.L0*sin(A1))
-		TM[1,4]=0.5*(1/self.L0+1/self.L1-2*self.rmv*sin(A1))/sin(abs(A1))
-		TM[1,7]=-0.5/(self.L1*sin(A1))
-		TM[2,5]=0.5*sin(0.5*A4)/self.L2
-		TM[2,6]=-0.5*cos(0.5*A4)/self.L2
-		TM[2,8]=0.5*cos(A5)*(1/self.L3-1/self.L2)
-		TM[2,9]=0.5*sin(A5)*(1/self.L2+1/self.L3-2*self.rah*self.SA/abs(sin(A5)))
-		TM[2,11]=0.5/self.L3
-		TM[3,7]=-0.5/(self.L2*sin(A5))
-		TM[3,10]=0.5*(1/self.L2+1/self.L3-2*self.rav*sin(A5))/abs(sin(A5))
-		TM[3,12]=-0.5/(self.L3*sin(A5))
+		Tmat=zeros([4,13])
+		Tmat[0,0]=-0.5/self.L0
+		Tmat[0,2]=0.5*cos(A1)*(1/self.L1-1/self.L0)
+		Tmat[0,3]=0.5*sin(A1)*(1/self.L0+1/self.L1-2*self.rmh*self.SM/abs(sin(A1)))
+		Tmat[0,5]=0.5*sin(0.5*A4)/self.L1
+		Tmat[0,6]=0.5*cos(0.5*A4)/self.L1
+		Tmat[1,1]=-0.5/(self.L0*sin(A1))
+		Tmat[1,4]=0.5*(1/self.L0+1/self.L1-2*self.rmv*sin(A1))/sin(abs(A1))
+		Tmat[1,7]=-0.5/(self.L1*sin(A1))
+		Tmat[2,5]=0.5*sin(0.5*A4)/self.L2
+		Tmat[2,6]=-0.5*cos(0.5*A4)/self.L2
+		Tmat[2,8]=0.5*cos(A5)*(1/self.L3-1/self.L2)
+		Tmat[2,9]=0.5*sin(A5)*(1/self.L2+1/self.L3-2*self.rah*self.SA/abs(sin(A5)))
+		Tmat[2,11]=0.5/self.L3
+		Tmat[3,7]=-0.5/(self.L2*sin(A5))
+		Tmat[3,10]=0.5*(1/self.L2+1/self.L3-2*self.rav*sin(A5))/abs(sin(A5))
+		Tmat[3,12]=-0.5/(self.L3*sin(A5))
 		
-		DM=zeros([8,13])
-		DM[0,0]=-1/self.L0
-		DM[0,2]=-cos(A1)/self.L0
-		DM[0,3]=sin(A1)/self.L0
-		DM[2,1]=-1/self.L0
-		DM[2,4]=1/self.L0
-		DM[1,2]=cos(A1)/self.L1
-		DM[1,3]=sin(A1)/self.L1
-		DM[1,5]=sin(0.5*A4)/self.L1
-		DM[1,6]=cos(0.5*A4)/self.L1
-		DM[3,4]=-1/self.L1
-		DM[3,7]=1/self.L1
-		DM[4,5]=sin(0.5*A4)/self.L2
-		DM[4,6]=-cos(0.5*A4)/self.L2
-		DM[4,8]=-cos(A5)/self.L2
-		DM[4,9]=sin(A5)/self.L2
-		DM[6,7]=-1/self.L2
-		DM[6,10]=1/self.L2
-		DM[5,8]=cos(A5)/self.L3
-		DM[5,9]=sin(A5)/self.L3
-		DM[5,11]=1/self.L3
-		DM[7,10]=-1/self.L3
-		DM[7,12]=1/self.L3
+		Dmat=zeros([8,13])
+		Dmat[0,0]=-1/self.L0
+		Dmat[0,2]=-cos(A1)/self.L0
+		Dmat[0,3]=sin(A1)/self.L0
+		Dmat[2,1]=-1/self.L0
+		Dmat[2,4]=1/self.L0
+		Dmat[1,2]=cos(A1)/self.L1
+		Dmat[1,3]=sin(A1)/self.L1
+		Dmat[1,5]=sin(0.5*A4)/self.L1
+		Dmat[1,6]=cos(0.5*A4)/self.L1
+		Dmat[3,4]=-1/self.L1
+		Dmat[3,7]=1/self.L1
+		Dmat[4,5]=sin(0.5*A4)/self.L2
+		Dmat[4,6]=-cos(0.5*A4)/self.L2
+		Dmat[4,8]=-cos(A5)/self.L2
+		Dmat[4,9]=sin(A5)/self.L2
+		Dmat[6,7]=-1/self.L2
+		Dmat[6,10]=1/self.L2
+		Dmat[5,8]=cos(A5)/self.L3
+		Dmat[5,9]=sin(A5)/self.L3
+		Dmat[5,11]=1/self.L3
+		Dmat[7,10]=-1/self.L3
+		Dmat[7,12]=1/self.L3
 		
-		# Spatial covariances matrix
+		# Spatial covariance matrix
 		Smat=zeros([13,13])
 		
 		# Source covariance matrix
 		if self.sourceshape == 0:
-			Smat[0,0]=1/16.*sourced**2
-			Smat[1,1]=1/16.*sourced**2
+			Smat[0,0]=1/16.*self.sourcediameter**2
+			Smat[1,1]=1/16.*self.sourcediameter**2
 		else:
-			Smat[0,0]=1/12.*sourcey**2
-			Smat[1,1]=1/12.*sourcez**2
+			Smat[0,0]=1/12.*self.sourcey**2
+			Smat[1,1]=1/12.*self.sourcez**2
 		
 		# Monochromator covariance matrix
 		Smono=zeros([3,3])
-		Smono[0,0]=1/12.*monoth**2
-		Smono[1,1]=1/12.*monow**2
-		Smono[2,2]=1/12.*monoh**2
+		Smono[0,0]=1/12.*self.monothickness**2
+		Smono[1,1]=1/12.*self.monowidth**2
+		Smono[2,2]=1/12.*self.monoheight**2
 		Smat[2:5,2:5]=Smono
 		
-		# Sample covariance matrix
+		# SAmatple covariance matrix
 		Ssam=zeros([3,3])
 		if self.sampleshape == 0:
-			Ssam[0,0]=1/16.*samd**2
-			Ssam[1,1]=1/16.*samd**2
-			Ssam[2,2]=1/12.*samth**2
+			Ssam[0,0]=1/16.*self.samplediameter**2
+			Ssam[1,1]=1/16.*self.samplediameter**2
+			Ssam[2,2]=1/12.*self.sampleheight**2
 		else:
-			Ssam[0,0]=1/12.*samth**2
-			Ssam[1,1]=1/12.*samw**2
-			Ssam[2,2]=1/12.*samh**2		
+			Ssam[0,0]=1/12.*self.samplethickness**2
+			Ssam[1,1]=1/12.*self.samplewidth**2
+			Ssam[2,2]=1/12.*self.sampleheight**2		
 		Smat[5:8,5:8]=Ssam
 				
 		# Analyzer covariance matrix
 		Sana=zeros([3,3])
-		Sana[0,0]=1/12.*anath**2
-		Sana[1,1]=1/12.*anaw**2
-		Sana[2,2]=1/12.*anah**2
+		Sana[0,0]=1/12.*self.anathickness**2
+		Sana[1,1]=1/12.*self.anawidth**2
+		Sana[2,2]=1/12.*self.anaheight**2
 		Smat[8:11,8:11]=Sana
 
 		# Detector covariance matrix
 		if self.detshape == 0:
-			Smat[11,11]=1/16.*detd**2
-			Smat[12,12]=1/16.*detd**2
+			Smat[11,11]=1/16.*self.detdiameter**2
+			Smat[12,12]=1/16.*self.detdiameter**2
 		else:
-			Smat[11,11]=1/12.*dety**2
-			Smat[12,12]=1/12.*detz**2		
+			Smat[11,11]=1/12.*self.detwidth**2
+			Smat[12,12]=1/12.*self.detheight**2		
 			
 		# Builds full Popovici matrix and transform it to the coordinate space of the resolution matrix (Dw,Dkin,y1,y2,z1,z2)
 		
-		ICmat=zeros([6,6])
-		ICmat[0,1]=1/cos(theta1)
-		ICmat[0,2]=-tan(theta1)
-		ICmat[3,0]=-1/(nf*cos(theta2))
-		ICmat[3,1]=ni/(nf*cos(theta2))
-		ICmat[3,3]=-tan(theta2)
-		ICmat[1,2]=1
-		ICmat[2,4]=1
-		ICmat[4,3]=1
-		ICmat[5,5]=1
+		ICmatat=zeros([6,6])
+		ICmatat[0,1]=1/cos(theta1)
+		ICmatat[0,2]=-tan(theta1)
+		ICmatat[3,0]=-1/(nf*cos(theta2))
+		ICmatat[3,1]=ni/(nf*cos(theta2))
+		ICmatat[3,3]=-tan(theta2)
+		ICmatat[1,2]=1
+		ICmatat[2,4]=1
+		ICmatat[4,3]=1
+		ICmatat[5,5]=1
 			
-		XImat=inv(inv(dot(DM,dot(inv(inv(Smat)+dot(transpose(TM),dot(FM,TM))),transpose(DM))))+GM)
-		XImat=dot(AM,dot(XImat,transpose(AM)))
-		XImat=inv(dot(inv(ICmat),dot(XImat,transpose(inv(ICmat)))))
+		XImat=inv(inv(dot(Dmat,dot(inv(inv(Smat)+dot(transpose(Tmat),dot(Fmat,Tmat))),transpose(Dmat))))+Gmat)
+		XImat=dot(Amat,dot(XImat,transpose(Amat)))
+		XImat=inv(dot(inv(ICmatat),dot(XImat,transpose(inv(ICmatat)))))
 
 		## Imaginary part (Larmor precession)
 		
@@ -865,12 +839,12 @@ class SERESCAL:
 		ymag_par=ones(len)
 		ymag_antipar=ones(len)
 		#
-		mtot=sqrt(self.Myy**2+self.Mzz**2)
+		mtot=sqrt(self.Mxy**2+self.Mzz**2)
 		if mtot ==0: # No magnetic contribution...
 			ymag_par=zeros(len)
 			ymag_antipar=zeros(len)
 		else:
-			anisoM=(self.Myy**2-self.Mzz**2)/(self.Myy**2+self.Mzz**2)
+			anisoM=(self.Mxy**2-self.Mzz**2)/(self.Mxy**2+self.Mzz**2)
 			icount=0
 			for t in tau:
 				cosavg=quad(lambda dk: calcPhiNSE(dk,t,ki,dki),0,inf)
